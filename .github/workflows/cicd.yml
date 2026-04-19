@@ -44,7 +44,7 @@ jobs:
 
   testing-step:
     runs-on: self-hosted
-    needs: compile
+    needs: security-check
 
     steps:
     - uses: actions/checkout@v4
