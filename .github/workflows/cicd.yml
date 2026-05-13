@@ -3,8 +3,40 @@ name: CICD Pipeline
 on:
   push:
     branches: [ "main" ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+      debug:
+        description: 'Enable debug mode'
+        required: false
+        type: boolean
+        default: false
 
 jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Initialize Environment Variables
+        run: |
+          # If triggered by push, default to staging. If manual, use the chosen input.
+          ENV_TARGET="${{ inputs.environment || 'staging' }}"
+          echo "DEPLOY_ENV=$ENV_TARGET" >> $GITHUB_ENV
+          
+          # Handle debug flag fallback
+          DEBUG_MODE="${{ inputs.debug || 'false' }}"
+          echo "DEBUG_MODE=$DEBUG_MODE" >> $GITHUB_ENV
+
+      - name: Run Deployment
+        run: |
+          echo "Deploying to $DEPLOY_ENV"
+          echo "Debug mode is set to $DEBUG_MODE"
+
   compile:
     runs-on: self-hosted
 
@@ -149,4 +181,5 @@ jobs:
     - name: Deploy to EKS
       run: |
         kubectl apply -f ds.yml
+
 
